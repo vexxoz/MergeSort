@@ -1,3 +1,5 @@
+import java.util.Random;
+
 /**
  * Implements various merge style algorithms.
  * 
@@ -42,18 +44,104 @@ public class BaseMerging {
     }
     
     public static Queue mergeQueues(Queue<Comparable> q1, Queue<Comparable> q2) {
-        //TODO: implement this.
-        return new ListQueue();
+        Queue returnQue = new ListQueue();
+        while(!q1.isEmpty() || !q2.isEmpty()) {
+        	if(q1.isEmpty()) returnQue.enqueue(q2.dequeue());
+        	else if(q2.isEmpty()) returnQue.enqueue(q1.dequeue());
+        	else if(less(q1.front(),q2.front())) {returnQue.enqueue(q2.dequeue());}else{returnQue.enqueue(q1.dequeue());}
+        }
+        return returnQue;
     }
     
     public static void sort(Comparable[] a) {
-        //TODO: implement this.
+        mergesort(a);
     }
 
+    public static Comparable[] mergesort(Comparable[] a) {
+    	Comparable[] newArray;
+    	if(a.length == 1) return a;
+    	int mid = a.length/2;
+    	//if(a.length<=1) return;
+    	// left side
+    	Comparable[] left = new Comparable[mid];
+    	for(int i=0;i<mid;i++) {
+    		left[i]=a[i];
+    	}
+    	mergesort(left);
+    	// right side
+    	Comparable[] right = new Comparable[a.length-mid];
+    	for(int i=mid;i<a.length;i++) {
+    		right[i-mid]=a[i];
+    	}
+    	mergesort(right);
+    	newArray = merge(left,right);
+    	for(int i=0;i<newArray.length;i++) {
+    		a[i]=newArray[i];
+    	}
+    	return newArray;
+    }
+
+    public static Comparable[] merge(Comparable[] a, Comparable[] b) {
+    	Comparable[] newArray = new Comparable[a.length+b.length];
+    	Comparable[] temp = new Comparable[a.length+b.length];
+    	
+    	for(int i=0;i<temp.length;i++) {
+    		if(i<a.length) temp[i]=a[i];
+    		else temp[i]=b[i-a.length];
+    	}
+    	
+        int i = 0, j = a.length;
+        
+        // merge back to a[]
+        for (int k = 0; k < temp.length; k++) {
+            if      (i > a.length-1)            newArray[k] = temp[j++];
+            else if (j > temp.length-1)         newArray[k] = temp[i++];
+            else if (less(temp[j], temp[i])) 	newArray[k] = temp[j++];
+            else                           		newArray[k] = temp[i++];
+        }
+        return newArray;
+    }
+    
+    // This shuffle method has a Big-Oh of O(nlogn) because it very closely follows the algorithm of mergesort. 
+    // Except instead of comparing values it randomly inserts them in using the randomBool function
+    // which has a Big-Oh of O(1);
     public static void shuffle(Object[] a) {
-        //TODO: implement this.
+        Object[] aux = new Object[a.length];
+        breakDown(a, aux, 0, a.length-1);
+    }
+    
+    private static void breakDown(Object[] a, Object[] aux, int start, int end) {
+    	if (end <= start) return;
+    	int mid = start+(end-start)/2;
+    	
+    	// left side
+    	breakDown(a, aux, start, mid);
+    	//right side
+    	breakDown(a, aux, mid+1, end);
+    	//bring together
+    	shuffleMerge(a,aux,start,mid,end);
+    }
+    
+    private static void shuffleMerge(Object[] a, Object[] aux, int start, int mid, int end) {
+    	for(int i=start;i<=end;i++) {
+    		aux[i]=a[i];
+    	}
+    	
+    	int first = start, second = mid+1;
+    	
+        for (int i = start; i <= end; i++) {
+            if      (first > mid)   a[i] = aux[first++];
+            else if (second > end)   a[i] = aux[first++];
+            else if (randomBool()) 	a[i] = aux[second++];
+            else                    a[i] = aux[first++];
+        }
     }
 
+    private static boolean randomBool() {
+    	Random rand = new Random();
+    	return rand.nextBoolean();
+    }
+    
     //sorting helper from text
     private static boolean less(Comparable v, Comparable w) {
         return v.compareTo(w) < 0;
